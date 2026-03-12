@@ -1,4 +1,3 @@
-//TO COMPILE: gcc -O3 -march=native -mavx2 -mfma -fopenmp syrk.c -lopenblas -o syrksdzc
 #include <immintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,12 +142,13 @@ int main(){
 testOurSyrkOnExample();
 
 int n=20000;
-int k=10000z;
+int k=10000;
 
 float alpha=1.0f;
 float beta=1.0f;
 
 int thread_list[4]={1,2,4,8};
+int runs=10;
 
 float *X=aligned_alloc_f((size_t)n*k);
 float *C1=aligned_alloc_f((size_t)n*n);
@@ -161,27 +161,42 @@ printf("SYRK benchmark N=%d K=%d\n\n",n,k);
 
 for(int t=0;t<4;t++){
 
-int threads=thread_list[t];
+    int threads=thread_list[t];
 
-memset(C1,0,(size_t)n*n*sizeof(float));
-memset(C2,0,(size_t)n*n*sizeof(float));
+    double log_sum_my=0.0;
+    double log_sum_ob=0.0;
 
-printf("Threads %d\n",threads);
+    printf("Threads %d\n",threads);
 
-double t0=omp_get_wtime();
-syrk_fast(n,k,alpha,X,beta,C1,threads);
-double t1=omp_get_wtime()-t0;
+    for(int r=0;r<runs;r++){
 
-openblas_set_num_threads(threads);
+        memset(C1,0,(size_t)n*n*sizeof(float));
+        memset(C2,0,(size_t)n*n*sizeof(float));
 
-t0=omp_get_wtime();
-cblas_ssyrk(CblasColMajor,CblasLower,CblasNoTrans,
-            n,k,alpha,X,n,beta,C2,n);
-double t2=omp_get_wtime()-t0;
+        double t0=omp_get_wtime();
+        syrk_fast(n,k,alpha,X,beta,C1,threads);
+        double t1=omp_get_wtime()-t0;
 
-printf("MyBlas      %.4f s\n",t1);
-printf("OpenBLAS %.4f s\n",t2);
-printf("Eff      %.2f %%\n\n",(t2/t1)*100.0);
+        openblas_set_num_threads(threads);
+
+        t0=omp_get_wtime();
+        cblas_ssyrk(CblasColMajor,CblasLower,CblasNoTrans,
+                    n,k,alpha,X,n,beta,C2,n);
+        double t2=omp_get_wtime()-t0;
+
+        log_sum_my += log(t1);
+        log_sum_ob += log(t2);
+
+        printf("Run %d  MyBlas %.4f  OpenBLAS %.4f\n",r+1,t1,t2);
+    }
+
+    double gm_my = exp(log_sum_my/runs);
+    double gm_ob = exp(log_sum_ob/runs);
+
+    printf("\nGeometric mean (%d runs)\n",runs);
+    printf("MyBlas      %.4f s\n",gm_my);
+    printf("OpenBLAS    %.4f s\n",gm_ob);
+    printf("Efficiency  %.2f %%\n\n",(gm_ob/gm_my)*100.0);
 }
 
 free(X);
