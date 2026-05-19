@@ -159,7 +159,8 @@ class BlasL2Tester:
               self.ptr(a,ctype), self.ptr(A,ctype),4, self.ptr(x,ctype),1,
               self.ptr(b,ctype), self.ptr(y,ctype),1)
         if not np.allclose(y, y_ref):
-            raise AssertionError("Wrong result in symv/hemv")
+            raise AssertionError("Wrong result in gemv")
+        assert False
 
     def _child_invoke(self, prefix, test_name, mode="one", threads=1):
         args = [sys.executable, __file__, "child", prefix, test_name, mode, str(threads)]
