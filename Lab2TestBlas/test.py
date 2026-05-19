@@ -183,6 +183,8 @@ class BlasL2Tester:
             print(Fore.RED + label_multi + " FAILED" + Style.RESET_ALL)
             if cp2.stderr:
                 print(cp2.stderr.decode(), end="")
+        if cp.returncode != 0 or cp2.returncode != 0:
+            raise AssertionError("Some tests failed")
 
     def run_all(self):
         tests = ["gemv","gbmv","trmv","trsv","symv_hemv","ger"]
