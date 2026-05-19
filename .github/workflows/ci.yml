@@ -1,0 +1,30 @@
+name: CI BLAS Tests
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc python3 python3-pip libopenblas-dev
+
+      - name: Compile SYRK
+        run: |
+          gcc Lab3MySYRK/SYRK.c -o syrk -lopenblas
+
+      - name: Run interface tests
+        run: |
+          python3 Lab2TestBlas/test.py
+
+      - name: Run performance test
+        run: |
+          ./syrk
