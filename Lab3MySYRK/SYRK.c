@@ -141,8 +141,13 @@ int main(){
 
 testOurSyrkOnExample();
 
+#ifdef CI
+int n=512;
+int k=256;
+#else
 int n=20000;
 int k=10000;
+#endif
 
 float alpha=1.0f;
 float beta=1.0f;
