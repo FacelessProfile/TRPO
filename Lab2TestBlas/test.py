@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.util
 import numpy as np
 import traceback
 import subprocess
@@ -188,7 +189,7 @@ class BlasL2Tester:
             print("\n=== PREFIX {} ===".format(prefix.upper()))
             for t in tests:
                 self.run_test_pair(prefix, t, multithread_count=8)
-lib_path = "/home/rook/Desktop/OpenBLAS-develop/lib/libopenblas.so" #CHANGE TO YOUR PATH!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+lib_path = ctypes.util.find_library("openblas") #CHANGE TO YOUR PATH!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def _child_main():
     if len(sys.argv) < 5:
